@@ -14,7 +14,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="ddddocr",
-    version="1.5.5",
+    version="1.6.0",
     author="sml2h3",
     description="带带弟弟OCR",
     long_description=long_description,
@@ -29,11 +29,21 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     install_requires=['numpy', 'onnxruntime', 'Pillow', 'opencv-python-headless'],
-    python_requires='<3.13',
+    extras_require={
+        'api': ['fastapi>=0.100.0', 'uvicorn[standard]>=0.20.0', 'pydantic>=2.0.0'],
+        'all': ['fastapi>=0.100.0', 'uvicorn[standard]>=0.20.0', 'pydantic>=2.0.0']
+    },
+    python_requires='<=3.13',
     include_package_data=True,
     install_package_data=True,
+    entry_points={
+        'console_scripts': [
+            'ddddocr=ddddocr.__main__:main',
+        ],
+    },
 )

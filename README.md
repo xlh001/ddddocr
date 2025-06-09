@@ -48,11 +48,15 @@ DdddOcr、最简依赖的理念，尽量减少用户的配置和使用成本，�
 - [项目底层支持](#项目底层支持)
 - [使用文档](#使用文档)
   - [基础ocr识别能力](#i-基础ocr识别能力)
-  - [目标检测能力](#ii-目标检测能力)
-  - [滑块检测](#ⅲ-滑块检测)
-  - [OCR概率输出](#ⅳ-ocr概率输出)
-  - [自定义OCR训练模型导入](#ⅴ-自定义ocr训练模型导入)
+  - [图片颜色过滤功能](#ii-图片颜色过滤功能)
+  - [目标检测能力](#iii-目标检测能力)
+  - [滑块检测](#ⅳ-滑块检测)
+  - [OCR概率输出](#ⅴ-ocr概率输出)
+  - [自定义OCR训练模型导入](#ⅵ-自定义ocr训练模型导入)
+  - [HTTP API服务](#ⅶ-http-api服务)
+  - [MCP协议支持](#ⅷ-mcp协议支持)
 - [版本控制](#版本控制)
+- [常见问题解决方案](#常见问题解决方案)
 - [相关推荐文章or项目](#相关推荐文章or项目)
 - [作者](#作者)
 - [捐赠](#捐赠)
@@ -91,11 +95,16 @@ DdddOcr、最简依赖的理念，尽量减少用户的配置和使用成本，�
 pip install ddddocr
 ```
 
-**ii. 从源码安装**
+**ii. 安装API服务支持**
+```sh
+pip install ddddocr[api]
+```
+
+**iii. 从源码安装**
 ```sh
 git clone https://github.com/sml2h3/ddddocr.git
 cd ddddocr
-python setup.py
+python setup.py install
 ```
 
 **请勿直接在ddddocr项目的根目录内直接import ddddocr**，请确保你的开发项目目录名称不为ddddocr，此为基础常识。
@@ -185,7 +194,69 @@ print(result)
 <img src="https://cdn.wenanzhe.com/img/aftf_C2vHZlk8540y3qAmCM.bmp" alt="captcha" width="150">
 <img src="https://cdn.wenanzhe.com/img/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20211226144057.png" alt="captcha" width="150">
 
-##### ii. 目标检测能力
+##### ii. 图片颜色过滤功能
+
+本功能支持HSV颜色空间的颜色范围过滤，可以有效提高特定颜色文字的识别准确率。
+
+**内置颜色预设**
+
+支持以下预设颜色：red（红色）、blue（蓝色）、green（绿色）、yellow（黄色）、orange（橙色）、purple（紫色）、cyan（青色）、black（黑色）、white（白色）、gray（灰色）
+
+**使用方式1：通过预设颜色名称**
+
+```python
+import ddddocr
+
+ocr = ddddocr.DdddOcr()
+
+with open("captcha.jpg", "rb") as f:
+    image = f.read()
+
+# 只保留红色和蓝色的文字
+result = ocr.classification(image, color_filter_colors=['red', 'blue'])
+print(result)
+```
+
+**使用方式2：通过自定义HSV范围**
+
+```python
+import ddddocr
+
+ocr = ddddocr.DdddOcr()
+
+with open("captcha.jpg", "rb") as f:
+    image = f.read()
+
+# 自定义HSV颜色范围 (H, S, V)
+custom_ranges = [
+    ((0, 50, 50), (10, 255, 255)),    # 红色范围1
+    ((170, 50, 50), (180, 255, 255))  # 红色范围2
+]
+
+result = ocr.classification(image, color_filter_custom_ranges=custom_ranges)
+print(result)
+```
+
+**查看可用颜色**
+
+```python
+from ddddocr import ColorFilter
+
+# 获取所有可用的预设颜色
+colors = ColorFilter.get_available_colors()
+print(colors)
+
+# 查看颜色的HSV范围
+print(ColorFilter.COLOR_PRESETS['red'])
+```
+
+**命令行查看颜色**
+
+```sh
+python -m ddddocr colors
+```
+
+##### iii. 目标检测能力
 
 主要用于快速检测出图像中可能的目标主体位置，由于被检测出的目标不一定为文字，所以本功能仅提供目标的bbox位置 **（在⽬标检测⾥，我们通常使⽤bbox（bounding box，缩写是 bbox）来描述⽬标位置。bbox是⼀个矩形框，可以由矩形左上⻆的 x 和 y 轴坐标与右下⻆的 x 和 y 轴坐标确定）** 
 
@@ -228,7 +299,7 @@ cv2.imwrite("result.jpg", im)
 <img src="https://cdn.wenanzhe.com/img/result2.jpg" alt="captcha" width="200">
 <img src="https://cdn.wenanzhe.com/img/result4.jpg" alt="captcha" width="200">
 
-##### Ⅲ. 滑块检测
+##### Ⅳ. 滑块检测
 
 本项目的滑块检测功能并非AI识别实现，均为opencv内置算法实现。可能对于截图党用户没那么友好~，如果使用过程中无需调用ocr功能或目标检测功能，可以在初始化时通过传参`ocr=False`关闭ocr功能或`det=False`来关闭目标检测功能
 
@@ -305,7 +376,7 @@ cv2.imwrite("result.jpg", im)
     print(res)
   ```
 
-##### Ⅳ. OCR概率输出
+##### Ⅴ. OCR概率输出
 
 为了提供更灵活的ocr结果控制与范围限定，项目支持对ocr结果进行范围限定。
 
@@ -348,7 +419,7 @@ print(s)
 
 ```
 
-##### Ⅴ. 自定义OCR训练模型导入
+##### Ⅵ. 自定义OCR训练模型导入
 
 本项目支持导入来自于 [dddd_trainer](https://github.com/sml2h3/dddd_trainer) 进行自定义训练后的模型，参考导入代码为
 
@@ -365,9 +436,226 @@ print(res)
 
 ```
 
+##### Ⅶ. HTTP API服务
+
+本项目支持通过HTTP API的方式提供服务，方便集成到各种应用中。
+
+**启动API服务**
+
+```sh
+# 基础启动
+python -m ddddocr api
+
+# 指定端口和主机
+python -m ddddocr api --host 0.0.0.0 --port 8000
+
+# 开发模式（自动重载）
+python -m ddddocr api --reload
+
+# 查看所有选项
+python -m ddddocr api --help
+```
+
+**API端点说明**
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/initialize` | POST | 初始化并选择加载的模型类型 |
+| `/switch-model` | POST | 运行时切换模型配置 |
+| `/toggle-feature` | POST | 开启/关闭特定功能 |
+| `/ocr` | POST | 执行OCR识别 |
+| `/detect` | POST | 执行目标检测 |
+| `/slide-match` | POST | 滑块匹配算法 |
+| `/slide-comparison` | POST | 滑块比较算法 |
+| `/status` | GET | 获取当前服务状态 |
+| `/docs` | GET | Swagger UI文档 |
+
+**使用示例**
+
+1. 初始化服务
+```bash
+curl -X POST "http://localhost:8000/initialize" \
+     -H "Content-Type: application/json" \
+     -d '{"ocr": true, "det": false}'
+```
+
+2. OCR识别（支持颜色过滤）
+```bash
+curl -X POST "http://localhost:8000/ocr" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "image": "base64_encoded_image_data",
+       "color_filter_colors": ["red", "blue"],
+       "png_fix": false,
+       "probability": false
+     }'
+```
+
+3. 目标检测
+```bash
+curl -X POST "http://localhost:8000/detect" \
+     -H "Content-Type: application/json" \
+     -d '{"image": "base64_encoded_image_data"}'
+```
+
+4. 查看服务状态
+```bash
+curl "http://localhost:8000/status"
+```
+
+**Python客户端示例**
+
+```python
+import requests
+import base64
+
+# 读取图片并转换为base64
+with open("captcha.jpg", "rb") as f:
+    image_data = base64.b64encode(f.read()).decode()
+
+# 初始化服务
+response = requests.post("http://localhost:8000/initialize",
+                        json={"ocr": True, "det": False})
+print(response.json())
+
+# OCR识别
+response = requests.post("http://localhost:8000/ocr",
+                        json={
+                            "image": image_data,
+                            "color_filter_colors": ["red", "blue"]
+                        })
+result = response.json()
+print(result["data"]["text"])
+```
+
+##### Ⅷ. MCP协议支持
+
+本项目支持MCP（Model Context Protocol）协议，使AI Agent能够直接调用ddddocr服务。
+
+**MCP端点**
+
+- 能力声明：`GET /mcp/capabilities`
+- 工具调用：`POST /mcp/call`
+
+**可用工具**
+
+1. `ddddocr_initialize` - 初始化服务
+2. `ddddocr_ocr` - OCR文字识别（支持颜色过滤）
+3. `ddddocr_detection` - 目标检测
+4. `ddddocr_slide_match` - 滑块匹配
+5. `ddddocr_slide_comparison` - 滑块比较
+6. `ddddocr_status` - 获取服务状态
+
+**MCP调用示例**
+
+```python
+import requests
+
+# 获取MCP能力
+response = requests.get("http://localhost:8000/mcp/capabilities")
+print(response.json())
+
+# 调用OCR工具
+mcp_request = {
+    "method": "ddddocr_ocr",
+    "params": {
+        "image": "base64_encoded_image",
+        "color_filter_colors": ["red", "blue"]
+    },
+    "id": "1"
+}
+
+response = requests.post("http://localhost:8000/mcp/call", json=mcp_request)
+print(response.json())
+```
+
 ### 版本控制
 
 该项目使用Git进行版本管理。您可以在repository参看当前可用版本。
+
+### 常见问题解决方案
+
+#### OpenCV相关问题
+
+**问题1：ImportError: No module named 'cv2'**
+
+解决方案：
+```bash
+# 卸载可能冲突的opencv包
+pip uninstall opencv-python opencv-python-headless
+
+# 重新安装
+pip install opencv-python-headless
+```
+
+**问题2：Linux系统OpenCV运行时错误**
+
+Ubuntu/Debian系统：
+```bash
+sudo apt-get update
+sudo apt-get install build-essential libglib2.0-0 libsm6 libxext6 libxrender-dev libgl1-mesa-glx
+```
+
+CentOS/RHEL系统：
+```bash
+sudo yum install gcc gcc-c++ make glib2-devel libSM libXext libXrender mesa-libGL
+```
+
+**问题3：Windows系统缺少VC运行库**
+
+下载并安装Visual C++运行库：
+- [Microsoft Visual C++ 运行库下载](https://www.ghxi.com/yxkhj.html)
+
+**问题4：macOS M1/M2芯片兼容性问题**
+
+参考解决方案：
+- [GitHub Issue #67](https://github.com/sml2h3/ddddocr/issues/67)
+
+#### API服务相关问题
+
+**问题1：启动API服务时提示缺少依赖**
+
+解决方案：
+```bash
+pip install ddddocr[api]
+# 或者
+pip install fastapi uvicorn pydantic
+```
+
+**问题2：API服务端口被占用**
+
+解决方案：
+```bash
+# 指定其他端口
+python -m ddddocr api --port 8001
+
+# 或查找并终止占用进程
+netstat -ano | findstr :8000  # Windows
+lsof -i :8000                 # Linux/macOS
+```
+
+**问题3：颜色过滤效果不理想**
+
+解决方案：
+1. 查看可用颜色预设：`python -m ddddocr colors`
+2. 使用自定义HSV范围进行精确控制
+3. 可以使用图像处理工具先分析图片的颜色分布
+
+#### 性能优化建议
+
+1. **避免重复初始化**：只初始化一次DdddOcr实例
+2. **GPU加速**：如有NVIDIA GPU，可设置`use_gpu=True`
+3. **批量处理**：对于大量图片，建议使用API服务模式
+4. **内存管理**：处理大图片时注意内存使用
+
+#### 识别准确率优化
+
+1. **图片预处理**：确保图片清晰，对比度适中
+2. **颜色过滤**：对于彩色验证码，使用颜色过滤功能
+3. **字符集限制**：使用`set_ranges`方法限制字符范围
+4. **模型选择**：尝试不同的模型（old、beta）
+
+如果遇到其他问题，请在[GitHub Issues](https://github.com/sml2h3/ddddocr/issues)中提交问题报告。
 
 ### 相关推荐文章or项目
 
