@@ -301,7 +301,7 @@ def cleanup_inactive_instances(max_idle_time: int = 3600):
 app = FastAPI(
     title="DdddOcr API",
     description="DdddOcr通用验证码识别API服务",
-    version="1.0.0",
+    version="1.6.1",
     docs_url="/docs",
     redoc_url="/redoc"
 )

@@ -1,6 +1,6 @@
 # coding=utf-8
 # 从兼容层导入主类（新的模块化结构）
-from .compat.legacy import DdddOcr
+from .compat.v1 import DdddOcr
 
 from .utils import (
     ALLOWED_IMAGE_FORMATS,
